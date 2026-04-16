@@ -2,7 +2,7 @@
 name: excalidraw-diagram
 description: Generate Excalidraw diagrams from text content for Obsidian. Use when user asks to create diagrams, flowcharts, mind maps, or visual representations in Excalidraw format. Triggers on "Excalidraw", "画图", "流程图", "思维导图", "可视化", "diagram".
 metadata:
-  version: 1.3.0
+  version: 1.4.0
 ---
 
 # Excalidraw Diagram Generator
@@ -54,6 +54,8 @@ tags: [excalidraw]
 - **`%%` 必须在 Text Elements 内容之后**：不能紧跟在 `## Text Elements` 后面
 - Frontmatter 必须包含 `tags: [excalidraw]`
 - JSON 必须被 `%%` 标记包围
+- **元素 ID 只能用 `[A-Za-z0-9]`**：不能包含下划线 `_`、连字符 `-` 等。`^pd_chip` 会被插件解析为 ID=`pd`，导致 ID 不匹配
+- **index 字段必须使用单前缀 `a` 系列**：如 `a1, a2, ... a9, aA, aB, ... aZ, aa, ab, ...`。**禁止**跨前缀（如 `a1` 跳到 `b1`），否则 Obsidian 插件无法新增元素。详见下方 Index 规则
 
 ## Diagram Types & Selection Guide
 
@@ -247,8 +249,32 @@ See [references/excalidraw-schema.md](references/excalidraw-schema.md) for all e
 ### 坐标与布局
 - **坐标系统**：左上角为原点 (0,0)
 - **推荐范围**：所有元素在 0-1200 x 0-800 像素范围内
-- **元素 ID**：每个元素需要唯一的 `id`（可以是字符串，如「title」「box1」等）
-- **Index 字段**：建议使用字母数字 (a1, a2, a3...)
+- **元素 ID**：每个元素需要唯一的 `id`，**只能包含 `[A-Za-z0-9]` 字符**（如 `title1`、`box1`、`pdchip`）。**禁止使用下划线 `_`、连字符 `-` 或其他特殊字符**，因为 Excalidraw 插件用 `^[A-Za-z0-9]+` 解析 Text Elements 中的 ID，下划线会截断匹配
+
+### Index 字段规则（关键！违反会导致无法新增元素）
+
+Excalidraw 使用 fractional indexing 确定元素的绘制顺序。**必须遵守以下规则**：
+
+1. **所有 index 必须使用同一个前缀 `a`**：如 `a1, a2, a3, ... a9, aA, aB, ... aZ, aa, ab, ... az`
+2. **禁止跨前缀**：如 `a1, a2, ... a5, b1, b2` 会导致 Obsidian 插件无法新增元素
+3. **index 必须在 elements 数组中严格单调递增**
+4. **index 序列生成方法**：
+
+```
+字符序列：1 2 3 4 5 6 7 8 9 A B C D E F G H I J K L M N O P Q R S T U V W X Y Z a b c d e f g h i j k l m n o p q r s t u v w x y z
+第 N 个元素的 index = "a" + 序列[N-1]
+```
+
+示例（50 个元素）：
+```
+a1, a2, a3, ... a9, aA, aB, ... aZ, aa, ab, ... ax
+```
+
+**错误示例**（会导致无法新增元素）：
+```
+a0, a1, a2, ... a6, b0, b1, b2    ← 跨前缀，禁止！
+a1, b1, a2, a3, b2                  ← 非单调递增，文件无法打开！
+```
 
 ### Required Fields for All Elements
 ```json
