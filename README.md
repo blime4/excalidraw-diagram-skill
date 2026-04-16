@@ -56,3 +56,5 @@ so each provider folder can be packaged or installed as a self-contained skill.
 ## Example Style
 
 <img width="1584" height="1046" alt="image" src="https://github.com/user-attachments/assets/0412f191-572a-46b2-8955-18ca60150d67" />
+<img width="4277" height="1276" alt="image" src="https://github.com/user-attachments/assets/91f19f77-98a9-433c-ae1a-76cd8210a1ec" />
+
